@@ -20,7 +20,7 @@ include $(DEVKITARM)/gba_rules
 # the makefile is found
 #
 #---------------------------------------------------------------------------------
-TARGET		:= $(notdir $(CURDIR))
+TARGET		:= ezkernel
 BUILD		:= build
 SOURCES		:= source source/ff13b
 INCLUDES	:= include source/ff13b
@@ -65,7 +65,7 @@ LIBDIRS	:=	$(LIBGBA)
 
 ifneq ($(BUILDDIR), $(CURDIR))
 #---------------------------------------------------------------------------------
- 
+
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
  
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -122,7 +122,7 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba 
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba $(TARGET).bin
  
  
 #---------------------------------------------------------------------------------
@@ -131,6 +131,11 @@ else
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
+
+all             :   $(OUTPUT).bin
+
+$(OUTPUT).bin   :   $(OUTPUT).gba
+	cp $< $@
 
 $(OUTPUT).gba	:	$(OUTPUT).elf
 
@@ -158,8 +163,6 @@ soundbank.bin soundbank.h : $(AUDIOFILES)
 	@echo $(notdir $<)
 	@$(bin2o)
 
-
- 
 -include $(DEPSDIR)/*.d
  
 #---------------------------------------------------------------------------------------

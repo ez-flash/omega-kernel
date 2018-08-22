@@ -7,5 +7,4 @@
  
         PATH,DEVKITARM,DEVKITPRO,LIBGBA
 
-    3.Double click on build.bat under winodws. If it goes well, you will get ezkernel.gba
-    4.Rename the ezkernel.gba to ezkernel.bin, that is the omega kernel upgrade file
+    3.Double click on build.bat under Windows (or run make if you use Linux). If it goes well, you will get ezkernel.gba and, ezkernel.bin, which is the omega kernel upgrade file
