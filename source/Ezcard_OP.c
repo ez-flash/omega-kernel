@@ -445,7 +445,8 @@ void IWRAM_CODE Check_FW_update(u16 Current_FW_ver,u16 Built_in_ver)
 	//if(	get_crc32 != 0x22475DDC) //fw3
 	//if(	get_crc32 != 0xEE2DACE7) //fw4
 	//if(	get_crc32 != 0x5B6B5129) //fw5
-	if(	get_crc32 != 0x7E6212AB) //fw6
+	//if(	get_crc32 != 0x7E6212AB) //fw6
+	if( get_crc32 != 0xEFD03788) //fw7
 	{
 			sprintf(msg,"check crc32 error!");		
 			DrawHZText12(msg,0,2,offset_Y+0*line_x, RGB(31,00,00),1);
@@ -512,7 +513,7 @@ void IWRAM_CODE Check_FW_update(u16 Current_FW_ver,u16 Built_in_ver)
 				//DEBUG_printf("count %x ",count);
 				//break;								
 			}		
-			sprintf(msg,"update finished,power off");
+			sprintf(msg,"update finished,power off manual");
 			DrawHZText12(msg,0,2,offset_Y+8*line_x, 0x7FFF,1);	
 			
 			while(1);

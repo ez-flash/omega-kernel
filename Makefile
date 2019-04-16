@@ -22,8 +22,8 @@ include $(DEVKITARM)/gba_rules
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))
 BUILD		:= build
-SOURCES		:= source source/ff13b
-INCLUDES	:= include source/ff13b
+SOURCES		:= source source/ff13c
+INCLUDES	:= include source/ff13c
 DATA		:= font
 MUSIC		:=
 
