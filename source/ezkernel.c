@@ -1527,6 +1527,43 @@ u32 Check_file_type(TCHAR *pfilename)
 	}	
 }
 //---------------------------------------------------------------------------------
+void Show_error_num(u8 error_num)
+{
+	char msg[50];
+
+	ClearWithBG((u16*)gImage_SD,90, 2, 90, 13, 1);
+	switch(error_num)
+	{
+		case 0x0:
+			sprintf(msg,"%s",gl_error_0);
+			break;
+		case 0x1:
+			sprintf(msg,"%s",gl_error_1);
+			break;
+		case 0x2:
+			sprintf(msg,"%s",gl_error_2);
+			break;
+		case 0x3:
+			sprintf(msg,"%s",gl_error_3);
+			break;
+		case 0x4:
+			sprintf(msg,"%s",gl_error_4);
+			break;
+		case 0x5:
+			sprintf(msg,"%s",gl_error_5);
+			break;
+		case 0x6:
+			sprintf(msg,"%s",gl_error_6);
+			break;
+		default:
+			sprintf(msg,"%s","error?");
+			break;				
+	}
+
+	DrawHZText12(msg,0,90,2, RGB(31,00,00),1);
+	wait_btn();
+}
+//---------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------
 // Program entry point
@@ -1549,7 +1586,7 @@ int main(void) {
 	u32 shift;
 	u32 short_filename=0;
 	
-	u32 error_num;
+	u8 error_num;
 
 	gl_currentpage = 0x8002 ;//kernel mode
 
@@ -1559,7 +1596,7 @@ int main(void) {
 	Set_RTC_status(1);
 		
 	//check FW
-	u16 Built_in_ver = 6;   //Newest_FW_ver
+	u16 Built_in_ver = 7;   //Newest_FW_ver
 	u16 Current_FW_ver = Read_FPGA_ver();
 
 	if((Current_FW_ver < Built_in_ver) || (Current_FW_ver == 99))//99 is test ver
@@ -1918,7 +1955,8 @@ re_showfile:
 						res=f_chdir(currentpath);
 						if(res != FR_OK){
 							error_num = 10;
-							goto Error;
+							Show_error_num(error_num);
+							goto re_showfile;
 						}						
 						
 						p_folder_select_show_offset[folder_select] = 0;//clean
@@ -1950,7 +1988,8 @@ re_showfile:
 						res=f_chdir(currentpath);
 						if(res != FR_OK){
 							error_num = 0;
-							goto Error;
+							Show_error_num(error_num);
+							goto re_showfile;
 						}	
 											
 						p_folder_select_show_offset[folder_select] = show_offset;
@@ -2208,7 +2247,8 @@ re_showfile:
 				res = Check_game_save_FAT(pfilename,1);//game FAT
 				if(res == 0xffffffff){
 					error_num = 1;
-					goto Error;
+					Show_error_num(error_num);
+					goto re_showfile;
 				}
 			}								
 		}
@@ -2253,7 +2293,8 @@ re_showfile:
 		res=f_chdir("/SAVER");
 		if(res != FR_OK){
 			error_num = 2;
-			goto Error;
+			Show_error_num(error_num);
+			goto re_showfile;;
 		}
 
 
@@ -2317,7 +2358,8 @@ re_showfile:
 			if(res == 0)
 			{
 				error_num = 5;
-				goto Error;
+				Show_error_num(error_num);
+				goto re_showfile;
 			}
 		}
 		#ifdef DEBUG
@@ -2331,20 +2373,15 @@ re_showfile:
 				res = Check_game_save_FAT(savfilename,2);//save FAT
 				if(res == 0xffffffff)//   save file error
 				{
-					char msg[30];
 					error_num = 4;
-					Error:
-				    //DEBUG_printf("Fragmentation error");
-				    ClearWithBG((u16*)gImage_SD,90, 2, 60, 13, 1);
-						sprintf(msg,"%s %lu","error",error_num);			 //Fragmentation
-						DrawHZText12(msg,0,90,2, gl_color_text,1);
-				    wait_btn();
-				    goto re_showfile;
+					Show_error_num(error_num);
+					goto re_showfile;
 				}
 				if(FAT_table_buffer[(FAT_table_SAV_offset+4)/4] == 0)//save fat
 				{
 					error_num = 3;
-					goto Error;	
+					Show_error_num(error_num);
+					goto re_showfile;
 				}			
 				
 				Bank_Switching(0);
@@ -2385,8 +2422,9 @@ re_showfile:
 				u32 size = Check_RTS(pfilename);
 				if(size ==0)
 				{
-					error_num = 3;
-					goto Error;	
+					error_num = 6;
+					Show_error_num(error_num);
+					goto re_showfile;
 				}
 			}
 					
@@ -2417,8 +2455,9 @@ re_showfile:
 						u32 size = Check_RTS(pfilename);
 						if(size ==0)
 						{
-							error_num = 3;
-							goto Error;	
+							error_num = 6;
+							Show_error_num(error_num);
+							goto re_showfile;
 						}
 					}		
 						
