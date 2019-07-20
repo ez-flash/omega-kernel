@@ -40,6 +40,7 @@
 
 #include "goomba.h"
 #include "pocketnes.h"
+#include "smsadvance.h"
 
 
 
@@ -1323,6 +1324,12 @@ u32 IWRAM_CODE LoadEMU2PSRAM(TCHAR *filename,u32 is_EMU)
 			dmaCopy((void*)pReadCache,PSRAMBase_S98, pocketnes_gba_size);
 			rom_start_address = pocketnes_gba_size+0x30;
 			break;
+    case 4://sms
+    case 5://gg
+      dmaCopy((void*)smsadvance_gba,pReadCache, smsadvance_gba_size);
+      dmaCopy((void*)pReadCache,PSRAMBase_S98, smsadvance_gba_size);
+      rom_start_address = smsadvance_gba_size;
+      break;
 		default:
 			break;	
 	}
@@ -1343,6 +1350,28 @@ u32 IWRAM_CODE LoadEMU2PSRAM(TCHAR *filename,u32 is_EMU)
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x1EA0, 0x4);	
 			
 		}
+    else if(is_EMU==4 || is_EMU==5){//sms + gg
+      // Create a 64 byte SMSAdvance header.
+      int i;
+      for( i=0 ; i < 64 ; i++ ) {
+        pReadCache[i] = 0;
+      }
+
+      pReadCache[0] = 'S';
+      pReadCache[1] = 'M';
+      pReadCache[2] = 'S';
+      pReadCache[3] = 0x1A;
+      *(u32*)(&pReadCache[4]) = filesize;
+      strncpy((char*)(&pReadCache[32]), filename, 31);
+
+      if(is_EMU==5){
+        *(u16*)(&pReadCache[8]) |= 0x0004; // set gg rom flag
+      }
+
+      // write header directly after the SMSAdvance image, before the ROM.
+      dmaCopy((void*)pReadCache, PSRAMBase_S98 + rom_start_address, 64);
+      rom_start_address += 64;
+    }
 		else{
 			*(vu32*)pReadCache = 0x46c046c0;
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x3AA0, 0x4);	//exit no sram write
@@ -1520,6 +1549,14 @@ u32 Check_file_type(TCHAR *pfilename)
 	else if(!strcasecmp(&(pfilename[strlen8-3]), "nes"))
 	{
     return 3;
+	}
+	else if(!strcasecmp(&(pfilename[strlen8-3]), "sms"))
+	{
+    return 4;
+	}
+	else if(!strcasecmp(&(pfilename[strlen8-2]), "gg"))
+	{
+    return 5;
 	}
 	else 
 	{
