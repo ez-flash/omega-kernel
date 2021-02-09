@@ -1343,13 +1343,15 @@ u32 IWRAM_CODE LoadEMU2PSRAM(TCHAR *filename,u32 is_EMU)
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x1EA0, 0x4);	
 			
 		}
-		else{
+		/*else{
 			*(vu32*)pReadCache = 0x46c046c0;
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x3AA0, 0x4);	//exit no sram write
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x39F8, 0x4);	//L R no write
 			*(vu32*)pReadCache = 0x1C2246c0;//usr rtc
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x830, 0x4);				
-		}
+		}*/ 
+		//new goomba.h get from https://github.com/Sterophonick/SimpleLight/tree/master/emusrc/goombacolor
+		//thank you for Sterophonick changes it
 			
 		Clear(60,160-15,120,15,gl_color_cheat_black,1);	
 		DrawHZText12(gl_writing,0,78,160-15,gl_color_text,1);	
