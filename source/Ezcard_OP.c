@@ -294,6 +294,7 @@ void IWRAM_CODE Save_info(u32 info_offset, u8 * info_buffer,u32 buffersize)
 	vu16* buf = (vu16*)info_buffer ;
 	register u32 loopwrite ;
 	vu16 v1,v2;
+	u16 S71id =  Read_S71NOR_ID();
 	
 	*((vu16 *)(FlashBase_S71)) = 0xF0 ;	
 	
@@ -311,24 +312,41 @@ void IWRAM_CODE Save_info(u32 info_offset, u8 * info_buffer,u32 buffersize)
 		v2 = *((vu16 *)(FlashBase_S71+offset)) ;
 	}while(v1!=v2);		
 	//erase finish
-	u32 i;
-	for(loopwrite=0;loopwrite<(buffersize/32);loopwrite++)
+	if(S71id == 0x2202) //PL064
 	{
-		*((vu16 *)(FlashBase_S71+0x555*2)) = 0xAA;
-		*((vu16 *)(FlashBase_S71+0x2AA*2)) = 0x55;
-		*((vu16 *)(FlashBase_S71+offset+loopwrite*32)) = 0x25;
-		*((vu16 *)(FlashBase_S71+offset+loopwrite*32)) = 15;
-		for(i=0;i<=15;i++)
+		for(loopwrite=0;loopwrite<buffersize/2;loopwrite++)
 		{
-			*((vu16 *)(FlashBase_S71+offset+loopwrite*32 +2*i )) = buf[loopwrite*16+i];
-		}	
-		*((vu16 *)(FlashBase_S71+offset+loopwrite*32)) = 0x29;
-		
-		do
+			*((vu16 *)(FlashBase_S71+0x555*2)) = 0xAA ;
+			*((vu16 *)(FlashBase_S71+0x2AA*2)) = 0x55 ;
+			*((vu16 *)(FlashBase_S71+0x555*2)) = 0xA0 ;
+			*((vu16 *)(FlashBase_S71+offset+loopwrite*2)) = buf[loopwrite];
+			do
+			{
+				v1 = *((vu16 *)(FlashBase_S71+offset+loopwrite*2)) ;
+				v2 = *((vu16 *)(FlashBase_S71+offset+loopwrite*2)) ;
+			}while(v1!=v2);
+		}			
+	}
+	else {
+		u32 i;
+		for(loopwrite=0;loopwrite<(buffersize/32);loopwrite++)
 		{
-			v1 = *((vu16 *)(FlashBase_S71+offset+loopwrite*32));
-			v2 = *((vu16 *)(FlashBase_S71+offset+loopwrite*32));
-		}while(v1!=v2);
+			*((vu16 *)(FlashBase_S71+0x555*2)) = 0xAA;
+			*((vu16 *)(FlashBase_S71+0x2AA*2)) = 0x55;
+			*((vu16 *)(FlashBase_S71+offset+loopwrite*32)) = 0x25;
+			*((vu16 *)(FlashBase_S71+offset+loopwrite*32)) = 15;
+			for(i=0;i<=15;i++)
+			{
+				*((vu16 *)(FlashBase_S71+offset+loopwrite*32 +2*i )) = buf[loopwrite*16+i];
+			}	
+			*((vu16 *)(FlashBase_S71+offset+loopwrite*32)) = 0x29;
+			
+			do
+			{
+				v1 = *((vu16 *)(FlashBase_S71+offset+loopwrite*32));
+				v2 = *((vu16 *)(FlashBase_S71+offset+loopwrite*32));
+			}while(v1!=v2);
+		}
 	}
 
 	*((vu16 *)(FlashBase_S71)) = 0xF0;	
@@ -446,7 +464,8 @@ void IWRAM_CODE Check_FW_update(u16 Current_FW_ver,u16 Built_in_ver)
 	//if(	get_crc32 != 0xEE2DACE7) //fw4
 	//if(	get_crc32 != 0x5B6B5129) //fw5
 	//if(	get_crc32 != 0x7E6212AB) //fw6
-	if( get_crc32 != 0xEFD03788) //fw7
+	//if( get_crc32 != 0xEFD03788) //fw7
+	if( get_crc32 != 0x02D2ED6B) //fw8
 	{
 			sprintf(msg,"check crc32 error!");		
 			DrawHZText12(msg,0,2,offset_Y+0*line_x, RGB(31,00,00),1);
