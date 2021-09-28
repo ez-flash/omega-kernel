@@ -1137,7 +1137,7 @@ u32 SavefileWrite(TCHAR *filename,u32 savesize)
 u8 Check_saveMODE(u8 gamecode[])
 {
 	u32 i;
-	BYTE savemode = 0xFF;
+	BYTE savemode = 0x10;
 	dmaCopy((void*)saveMODE_table, (void*)pReadCache, sizeof(saveMODE_table));
 	for(i=0;i<3000;i++)
 	{
@@ -1598,7 +1598,7 @@ int main(void) {
 	Set_RTC_status(1);
 		
 	//check FW
-	u16 Built_in_ver = 8;   //Newest_FW_ver
+	u16 Built_in_ver = 9;   //Newest_FW_ver
 	u16 Current_FW_ver = Read_FPGA_ver();
 
 	if((Current_FW_ver < Built_in_ver) || (Current_FW_ver == 99))//99 is test ver
@@ -2326,7 +2326,7 @@ re_showfile:
 				case 0x3:saveMODE=0x21;break;//EEPROM512
 				case 0x4:saveMODE=0x32;break;//FLASH64
 				case 0x5:saveMODE=0x31;break;//FLASH128
-				case 0xf:saveMODE=0xee;break;	
+				case 0xf:saveMODE=0x10;break;	
 				default:saveMODE=0x00;break;					
 			}
 		}
@@ -2341,7 +2341,7 @@ re_showfile:
 			case 0x32:savefilesize=0x10000;break;//FLASH_TYPE 64k
 			case 0x33:savefilesize=0x10000;break;//FLASH512_TYPE 64k	
 			case 0x31:savefilesize=0x20000;break;//FLASH1M_TYPE 128k
-			case 0xee:savefilesize=0x10000;break;//EMU 64k	
+			case 0x10:savefilesize=0x10000;break;//EMU 64k	
 			default:	savefilesize=0x10000;break;//UNKNOW,FF  for homebrew SRAM_TYPE	//2018-4-23 some emu homebrew need 64kByte	
 		}		
 		

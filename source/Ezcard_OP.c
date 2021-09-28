@@ -465,7 +465,8 @@ void IWRAM_CODE Check_FW_update(u16 Current_FW_ver,u16 Built_in_ver)
 	//if(	get_crc32 != 0x5B6B5129) //fw5
 	//if(	get_crc32 != 0x7E6212AB) //fw6
 	//if( get_crc32 != 0xEFD03788) //fw7
-	if( get_crc32 != 0x02D2ED6B) //fw8
+	//if( get_crc32 != 0x02D2ED6B) //fw8
+	if( get_crc32 != 0xB23F6EAE) //fw9
 	{
 			sprintf(msg,"check crc32 error!");		
 			DrawHZText12(msg,0,2,offset_Y+0*line_x, RGB(31,00,00),1);
