@@ -1642,6 +1642,15 @@ int main(void) {
 		memset(pNorFS,00,sizeof(FM_NOR_FS)*MAX_NOR);
 		Save_NOR_info(pNorFS,sizeof(FM_NOR_FS)*MAX_NOR);
 	}
+	else {
+		VBlankIntrWait();
+		scanKeys();
+		if(keysDownRepeat() & KEY_L || keysDown() & KEY_L)
+		{
+			page_num = NOR_list;
+			goto load_file;
+		}
+	}
 
 refind_file:
 	
@@ -2208,6 +2217,9 @@ re_showfile:
 			}
 			ShowTime(page_num,page_mode);
 		}	//3
+
+load_file:
+
 
 		Clear(0, 0, 240, 160, gl_color_cheat_black, 1);
 		DrawHZText12(gl_Loading,0,(240-strlen(gl_Loading)*6)/2,74, gl_color_text,1);
