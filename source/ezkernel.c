@@ -38,7 +38,7 @@
 #include "images/Chinese_manual.h"
 #include "images/English_manual.h"
 
-#include "goomba.h"
+#include "jagoombacolor.h"
 #include "pocketnes.h"
 
 
@@ -1314,9 +1314,9 @@ u32 IWRAM_CODE LoadEMU2PSRAM(TCHAR *filename,u32 is_EMU)
 	{
 		case 1://gbc
 		case 2://gb	
-			dmaCopy((void*)goomba_gba,pReadCache, goomba_gba_size);
-			dmaCopy((void*)pReadCache,PSRAMBase_S98, goomba_gba_size);
-			rom_start_address = goomba_gba_size;
+			dmaCopy((void*)jagoombacolor_gba,pReadCache, jagoombacolor_gba_size);
+			dmaCopy((void*)pReadCache,PSRAMBase_S98, jagoombacolor_gba_size);
+			rom_start_address = jagoombacolor_gba_size;
 			break;
 		case 3://nes
 			dmaCopy((void*)pocketnes_gba,pReadCache, pocketnes_gba_size);
@@ -2483,7 +2483,8 @@ re_showfile:
 						SetTrimSize(pReadCache,gamefilesize,0x20000,0x0,saveMODE);						
 						
 						if((gl_engine_sel==0) || (gl_select_lang == 0xE2E2))
-						{				
+						{			
+							get_find:	
 			    		FAT_table_buffer[0x1F4/4] = 0x2;  // copy mode
 							Send_FATbuffer(FAT_table_buffer,1); //only save FAT													
 			    		res=Loadfile2PSRAM(pfilename);
@@ -2491,8 +2492,15 @@ re_showfile:
 						}
 						else 
 						{
-			    		use_internal_engine(GAMECODE);	
-			    		Send_FATbuffer(FAT_table_buffer,0);//Loading rom	
+			    		res=use_internal_engine(GAMECODE);	
+			    		if(res == 1) 
+			    		{
+			    			Send_FATbuffer(FAT_table_buffer,0);//Loading rom	
+			    		}
+			    		else
+			    		{
+			    			goto get_find;
+			    		}
 						}
 					}									
 		    	
