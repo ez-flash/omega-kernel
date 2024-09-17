@@ -5,7 +5,7 @@
 #include <gba_dma.h>
 
 
-#include "hzk12.h"
+#include "HZK12.h"
 #include "asc126.h"
 
 
