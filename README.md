@@ -1,4 +1,6 @@
-#EZ-FLASH OMEGA Kernel
+# EZ-FLASH OMEGA Kernel
+
+## This builds on linux and windows using the latest DKA version
 
 ### How to build 
 
