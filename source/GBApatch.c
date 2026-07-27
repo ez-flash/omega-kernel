@@ -75,12 +75,12 @@ bool IWRAM_CODE PatchDragonBallZ(u32 *Data)
   bool res=false;
 	const u32 game_codes_DragonBallZ[]=
 	{
-	  0x45464c42, //2 Games in 1 - Dragon Ball Z - The Legacy of Goku I & II (USA).gba
-	  0x50474c41, //Dragon Ball Z - The Legacy of Goku (Europe) (En,Fr,De,Es,It).gba
-	  0x45474c41, //Dragon Ball Z - The Legacy of Goku (USA).gba
-	  0x50464c41, //Dragon Ball Z - The Legacy of Goku II (Europe) (En,Fr,De,Es,It).gba
-	  0x45464c41, //Dragon Ball Z - The Legacy of Goku II (USA).gba
-	  0x4a464c41,  //Dragon Ball Z - The Legacy of Goku II International (Japan).gba
+	  0x45464c42, //2288 - 2 Games in 1 - Dragon Ball Z - The Legacy of Goku I & II (USA).gba
+	  0x50474c41, //0639 - Dragon Ball Z - The Legacy of Goku (Europe) (En,Fr,De,Es,It).gba
+	  0x45474c41, //0434 - Dragon Ball Z - The Legacy of Goku (USA).gba
+	  0x50464c41, //1056 - Dragon Ball Z - The Legacy of Goku II (Europe) (En,Fr,De,Es,It).gba
+	  0x45464c41, //1085 - Dragon Ball Z - The Legacy of Goku II (USA).gba
+	  0x4a464c41,  //1591 - Dragon Ball Z - The Legacy of Goku II International (Japan).gba
 
 	  0x45593241   //1928 - Top Gun - Combat Zones(US).gba
 	  
@@ -253,6 +253,11 @@ void IWRAM_CODE PatchInternal(u32* Data,int iSize,u32 offset)
       case 0x3007FFC: // IRQ handler
         {
           Add2(ii, 0x3007FF4);//0x3007FFCµÄÎ»ÖÃ
+        }
+        break;
+      case 0x3FFFFFC:
+        {
+          Add2(ii, 0x3007FF4);
         }
         break;
     }
@@ -596,6 +601,7 @@ void GBApatch_PSRAM(u32* address,int filesize)//Only once
 	PatchNes(address);
 	PatchDragonBallZ(address);
 	Check_Fire_Emblem();
+	Patch_somegame(address);
 	
 	if( (gl_rts_on==1) && (gl_cheat_on == 0)  && (gl_reset_on == 0)  && (gl_sleep_on == 0)  ) {
 		spend_address = Get_spend_address(address);
@@ -639,6 +645,7 @@ void GBApatch_NOR(u32* address,int filesize,u32 offset)
 		B_install_handler = 0xEA000000|((iTrimSize-8)/4);
 		Write(0,(u8*)&B_install_handler , 4); //B
 		spend_address = Get_spend_address(address);
+		Patch_somegame(address);
   }
 	PatchNes(address);
 	PatchDragonBallZ(address);
@@ -947,6 +954,7 @@ u32 use_internal_engine(u8 gamecode[])
 {
 	u32 i;
 	u32 count0x3007FFC=0;
+	u32 result=0;
 	
 	g_Offset = 0;
 	
@@ -956,12 +964,14 @@ u32 use_internal_engine(u8 gamecode[])
 		count0x3007FFC = ((vu32*)pReadCache)[i+1];				
 
 		if( ((vu32*)pReadCache)[i] == *(vu32*)gamecode )
-		{				
+		{
+			result =1;					
 			break;
 		}
 		i += (count0x3007FFC+1);
 	}	
-		
+	if(result==0)	return 0;
+			
 	#ifdef DEBUG
 		//DEBUG_printf("%d: %X VS %X %x",i,((vu32*)pReadCache)[i],*(vu32*)gamecode,count0x3007FFC);
 		//wait_btn();	
@@ -972,7 +982,7 @@ u32 use_internal_engine(u8 gamecode[])
   {
       Add2(((vu32*)pReadCache)[i+ii], 0x3007FF4);//0x3007FFC offset
   }
-	return 1;
+	return result;
 }
 //------------------------------------------------------------------
 void Patch_SpecialROM_sleepmode(void)
@@ -1396,4 +1406,22 @@ void Check_Fire_Emblem(void)
 	else{
 		Set_AUTO_save(0x01);
 	}	
+}
+//------------------------------------------------------------------
+void Patch_somegame(u32 *Data)
+{
+	u32 size = 0x7FF0;
+	if( *(u32*)GAMECODE == 0x50424732 )
+	{
+  	for(u32 ii=0;ii<0x100;ii++)
+  	{
+   	 if(0x3000000==Data[ii])
+    	{
+    		if(0x8000 ==Data[ii+1] )
+    		{
+    			Write((ii+1)*4,(u8*)&size,4 );
+    		}
+    	}
+		}
+	}
 }

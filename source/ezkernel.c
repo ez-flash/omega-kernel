@@ -38,7 +38,7 @@
 #include "images/Chinese_manual.h"
 #include "images/English_manual.h"
 
-#include "goomba.h"
+#include "jagoombacolor.h"
 #include "pocketnes.h"
 
 
@@ -1137,7 +1137,7 @@ u32 SavefileWrite(TCHAR *filename,u32 savesize)
 u8 Check_saveMODE(u8 gamecode[])
 {
 	u32 i;
-	BYTE savemode = 0xFF;
+	BYTE savemode = 0x10;
 	dmaCopy((void*)saveMODE_table, (void*)pReadCache, sizeof(saveMODE_table));
 	for(i=0;i<3000;i++)
 	{
@@ -1314,9 +1314,9 @@ u32 IWRAM_CODE LoadEMU2PSRAM(TCHAR *filename,u32 is_EMU)
 	{
 		case 1://gbc
 		case 2://gb	
-			dmaCopy((void*)goomba_gba,pReadCache, goomba_gba_size);
-			dmaCopy((void*)pReadCache,PSRAMBase_S98, goomba_gba_size);
-			rom_start_address = goomba_gba_size;
+			dmaCopy((void*)jagoombacolor_gba,pReadCache, jagoombacolor_gba_size);
+			dmaCopy((void*)pReadCache,PSRAMBase_S98, jagoombacolor_gba_size);
+			rom_start_address = jagoombacolor_gba_size;
 			break;
 		case 3://nes
 			dmaCopy((void*)pocketnes_gba,pReadCache, pocketnes_gba_size);
@@ -1343,13 +1343,15 @@ u32 IWRAM_CODE LoadEMU2PSRAM(TCHAR *filename,u32 is_EMU)
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x1EA0, 0x4);	
 			
 		}
-		else{
+		/*else{
 			*(vu32*)pReadCache = 0x46c046c0;
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x3AA0, 0x4);	//exit no sram write
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x39F8, 0x4);	//L R no write
 			*(vu32*)pReadCache = 0x1C2246c0;//usr rtc
 			dmaCopy((void*)pReadCache,PSRAMBase_S98 + 0x830, 0x4);				
-		}
+		}*/ 
+		//new goomba.h get from https://github.com/Sterophonick/SimpleLight/tree/master/emusrc/goombacolor
+		//thank you for Sterophonick changes it
 			
 		Clear(60,160-15,120,15,gl_color_cheat_black,1);	
 		DrawHZText12(gl_writing,0,78,160-15,gl_color_text,1);	
@@ -1596,7 +1598,7 @@ int main(void) {
 	Set_RTC_status(1);
 		
 	//check FW
-	u16 Built_in_ver = 7;   //Newest_FW_ver
+	u16 Built_in_ver = 9;   //Newest_FW_ver
 	u16 Current_FW_ver = Read_FPGA_ver();
 
 	if((Current_FW_ver < Built_in_ver) || (Current_FW_ver == 99))//99 is test ver
@@ -2336,7 +2338,7 @@ load_file:
 				case 0x3:saveMODE=0x21;break;//EEPROM512
 				case 0x4:saveMODE=0x32;break;//FLASH64
 				case 0x5:saveMODE=0x31;break;//FLASH128
-				case 0xf:saveMODE=0xee;break;	
+				case 0xf:saveMODE=0x10;break;	
 				default:saveMODE=0x00;break;					
 			}
 		}
@@ -2351,7 +2353,7 @@ load_file:
 			case 0x32:savefilesize=0x10000;break;//FLASH_TYPE 64k
 			case 0x33:savefilesize=0x10000;break;//FLASH512_TYPE 64k	
 			case 0x31:savefilesize=0x20000;break;//FLASH1M_TYPE 128k
-			case 0xee:savefilesize=0x10000;break;//EMU 64k	
+			case 0x10:savefilesize=0x10000;break;//EMU 64k	
 			default:	savefilesize=0x10000;break;//UNKNOW,FF  for homebrew SRAM_TYPE	//2018-4-23 some emu homebrew need 64kByte	
 		}		
 		
@@ -2493,7 +2495,8 @@ load_file:
 						SetTrimSize(pReadCache,gamefilesize,0x20000,0x0,saveMODE);						
 						
 						if((gl_engine_sel==0) || (gl_select_lang == 0xE2E2))
-						{				
+						{			
+							get_find:	
 			    		FAT_table_buffer[0x1F4/4] = 0x2;  // copy mode
 							Send_FATbuffer(FAT_table_buffer,1); //only save FAT													
 			    		res=Loadfile2PSRAM(pfilename);
@@ -2501,8 +2504,15 @@ load_file:
 						}
 						else 
 						{
-			    		use_internal_engine(GAMECODE);	
-			    		Send_FATbuffer(FAT_table_buffer,0);//Loading rom	
+			    		res=use_internal_engine(GAMECODE);	
+			    		if(res == 1) 
+			    		{
+			    			Send_FATbuffer(FAT_table_buffer,0);//Loading rom	
+			    		}
+			    		else
+			    		{
+			    			goto get_find;
+			    		}
 						}
 					}									
 		    	
