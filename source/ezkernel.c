@@ -20,6 +20,7 @@
 #include "lang.h"
 #include "GBApatch.h"
 #include "showcht.h"
+#include "journal_diag.h"
 
 #include "images/splash.h"
 #include "images/SD.h"
@@ -1594,7 +1595,15 @@ int main(void) {
 
 	SetMode (MODE_3 | BG2_ENABLE );
 	
-	SD_Disable();	
+	SD_Disable();
+
+	/* Raw journal inspection must precede every FatFs access. */
+	u32 quarantine_frames;
+	for(quarantine_frames = 0; quarantine_frames < 120; quarantine_frames++)
+		VBlankIntrWait();
+	JournalDiagReport journal_report;
+	JournalDiag_Check(&journal_report);
+
 	Set_RTC_status(1);
 		
 	//check FW
@@ -1609,6 +1618,26 @@ int main(void) {
 	DrawPic((u16*)gImage_splash, 0, 0, 240, 160, 0, 0, 1);	
 	CheckLanguage();	
 	CheckSwitch();
+
+	if(journal_report.result != JOURNAL_DIAG_NONE)
+	{
+		char journal_msg[64];
+		if(journal_report.result == JOURNAL_DIAG_COMPLETE)
+			sprintf(journal_msg, "Journal: FULL WRITE (%lu/%lu)",
+				journal_report.sector_count - journal_report.guard_sectors,
+				journal_report.sector_count);
+		else if(journal_report.result == JOURNAL_DIAG_PARTIAL)
+			sprintf(journal_msg, "Journal: PARTIAL (%lu guard)",
+				journal_report.guard_sectors);
+		else if(journal_report.result == JOURNAL_DIAG_UNTOUCHED)
+			sprintf(journal_msg, "Journal: NOT WRITTEN (%lu)",
+				journal_report.sector_count);
+		else
+			sprintf(journal_msg, "Journal: INVALID HEADER");
+		DrawHZText12(journal_msg,0,2,105,gl_color_text,1);
+		DrawHZText12("Press B to continue",0,2,120,gl_color_text,1);
+		wait_btn();
+	}
 
 	res = f_mount(&EZcardFs, "", 1);
 	if( res != FR_OK)
@@ -2400,6 +2429,8 @@ load_file:
 				
 				Bank_Switching(0);
 				res = Loadsavefile(savfilename);							
+				/* A type-0xDA partition explicitly enables Guard diagnostics. */
+				JournalDiag_Prepare(FAT_table_buffer, savefilesize, GAMECODE);
 			}					
 
 			FAT_table_buffer[0x1F0/4] = gamefilesize;//size
